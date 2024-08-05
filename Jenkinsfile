@@ -9,7 +9,7 @@ pipeline {
 	}
 
 	stages {
-		stage('Build') {
+		stage('Checkout') {
 			steps {
 				sh "docker version"
 				sh "mvn --version"
@@ -23,12 +23,26 @@ pipeline {
 				echo "BUILD_URL - $env.BUILD_URL"
 			}
 		}
-				stage('Test') {
+
+		stage('Compile') {
 			steps {
-				echo "Test"
+				sh "mvn clean compile"
 			}
 		}
-				stage('Deploy') {
+
+		stage('Test') {
+			steps {
+				sh "mvn test"
+			}
+		}
+
+		stage('Integration Test') {
+			steps {
+				sh "mvn failsafe:integration-test failsafe:verify"
+			}
+		}
+
+		stage('Deploy') {
 			steps {
 				echo "Deploy"
 			}
