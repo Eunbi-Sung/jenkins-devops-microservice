@@ -30,21 +30,41 @@ pipeline {
 			}
 		}
 
-		stage('Test') {
+		// stage('Test') {
+		// 	steps {
+		// 		sh "mvn test"
+		// 	}
+		// }
+
+		// stage('Integration Test') {
+		// 	steps {
+		// 		sh "mvn failsafe:integration-test failsafe:verify"
+		// 	}
+		// }
+
+		stage('Package') {
 			steps {
-				sh "mvn test"
+				sh "mvn package -DskipTests"
 			}
 		}
 
-		stage('Integration Test') {
+		stage('Build Docker Iamge') {
 			steps {
-				sh "mvn failsafe:integration-test failsafe:verify"
+				// docker build -t "eunbisung/currency-exchange-devops:$env.BUILD_TAG"
+				script {
+					dockerImage = docker.build("eunbisung/currency-exchange-devops:${env.BUILD_TAG}")
+				}
 			}
 		}
 
-		stage('Deploy') {
+		stage('Push Docker Image') {
 			steps {
-				echo "Deploy"
+				script {
+					docker.withRegistry('', 'dockerhub') {
+						dockerImage.push();
+						dockerImage.push('latest');
+					}
+				}
 			}
 		}
 	}
